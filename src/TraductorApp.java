@@ -1,7 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.Map;
 
 public class TraductorApp {
@@ -15,88 +13,85 @@ public class TraductorApp {
 
         frame = new JFrame("Traductor de Frases");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(600, 300);
-        frame.setLayout(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5); 
+        frame.setSize(500, 240);
 
-      
-        JLabel lblFrase = new JLabel("Frase:");
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.anchor = GridBagConstraints.WEST;
-        frame.add(lblFrase, gbc);
+        // Panel principal con margen
+        JPanel panelPrincipal = new JPanel();
+        panelPrincipal.setLayout(new BoxLayout(panelPrincipal, BoxLayout.Y_AXIS));
+        panelPrincipal.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        
+        // Panel para frase
+        JPanel panelFrase = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        panelFrase.add(new JLabel("Frase:"));
         comboFrases = new JComboBox<>(GestorJSON.getFrases().toArray(new String[0]));
-        comboFrases.setPreferredSize(new Dimension(200, 25));
-        gbc.gridx = 1;
-        gbc.gridy = 0;
-        frame.add(comboFrases, gbc);
+        panelFrase.add(comboFrases);
+        panelPrincipal.add(panelFrase);
 
-      
-        JLabel lblIdioma = new JLabel("Idioma:");
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        frame.add(lblIdioma, gbc);
-
- 
+        // Panel para idioma
+        JPanel panelIdioma = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        panelIdioma.add(new JLabel("Idioma:"));
         comboIdiomas = new JComboBox<>();
-        comboIdiomas.setPreferredSize(new Dimension(200, 25));
-        gbc.gridx = 1;
-        gbc.gridy = 1;
-        frame.add(comboIdiomas, gbc);
+        panelIdioma.add(comboIdiomas);
+        panelPrincipal.add(panelIdioma);
 
-     
+        // Botón Traducir
+        JPanel panelBoton = new JPanel(new FlowLayout(FlowLayout.CENTER));
         btnTraducir = new JButton("Traducir");
-        btnTraducir.setPreferredSize(new Dimension(100, 30));
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.gridwidth = 2; 
-        frame.add(btnTraducir, gbc);
+        panelBoton.add(btnTraducir);
+        panelPrincipal.add(panelBoton);
 
-        
+        // Panel de traducción (más arriba y más compacto)
         JPanel panelTraduccion = new JPanel(new BorderLayout());
+        panelTraduccion.setBorder(BorderFactory.createEmptyBorder(5, 0, 0, 0)); // espacio superior pequeño
 
-        
-        txtTraduccion = new JTextArea(3, 25);
+        txtTraduccion = new JTextArea(2, 30); // Menor altura
         txtTraduccion.setEditable(false);
         txtTraduccion.setLineWrap(true);
         txtTraduccion.setWrapStyleWord(true);
+        txtTraduccion.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        txtTraduccion.setAlignmentX(Component.CENTER_ALIGNMENT);
+        txtTraduccion.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // margenes internos
+        txtTraduccion.setOpaque(true);
+        txtTraduccion.setBackground(Color.WHITE);
+
+        // Simulación de centrado de texto (rudimentario)
+        txtTraduccion.setText(" "); // Espacio inicial para dejar margen
+        txtTraduccion.setAlignmentX(Component.CENTER_ALIGNMENT);
+
         JScrollPane scrollPane = new JScrollPane(txtTraduccion);
+        scrollPane.setPreferredSize(new Dimension(350, 60)); // Ajusta tamaño exacto
         panelTraduccion.add(scrollPane, BorderLayout.CENTER);
 
-        
+        // Botón escuchar (más arriba y ajustado)
         btnEscuchar = new JButton();
         try {
             ImageIcon icono = new ImageIcon(getClass().getResource("/recursos/sonido.png"));
-            btnEscuchar.setIcon(icono);
+            Image img = icono.getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH); // reducir tamaño
+            btnEscuchar.setIcon(new ImageIcon(img));
         } catch (Exception e) {
-            System.err.println("No se pudo cargar la imagen del botón de sonido.");
-            e.printStackTrace();
+            System.out.println("No se pudo cargar el icono de sonido.");
         }
-        btnEscuchar.setPreferredSize(new Dimension(50, 50));
+        btnEscuchar.setPreferredSize(new Dimension(40, 40));
         panelTraduccion.add(btnEscuchar, BorderLayout.EAST);
 
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        gbc.gridwidth = 2;
-        frame.add(panelTraduccion, gbc);
+        panelPrincipal.add(panelTraduccion);
 
-        
+        frame.add(panelPrincipal);
+        frame.setVisible(true);
+
+        // Listeners
         comboFrases.addActionListener(e -> actualizarIdiomas());
         btnTraducir.addActionListener(e -> mostrarTraduccion());
         btnEscuchar.addActionListener(e -> reproducirAudio());
 
         actualizarIdiomas();
-        frame.setVisible(true);
     }
 
     private void actualizarIdiomas() {
         comboIdiomas.removeAllItems();
-        String fraseSeleccionada = (String) comboFrases.getSelectedItem();
-        if (fraseSeleccionada != null) {
-            Map<String, String> traducciones = GestorJSON.getTraducciones(fraseSeleccionada);
+        String frase = (String) comboFrases.getSelectedItem();
+        if (frase != null) {
+            Map<String, String> traducciones = GestorJSON.getTraducciones(frase);
             for (String idioma : traducciones.keySet()) {
                 comboIdiomas.addItem(idioma);
             }
